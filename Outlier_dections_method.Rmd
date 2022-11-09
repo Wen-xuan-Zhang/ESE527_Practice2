@@ -1,0 +1,368 @@
+---
+title: 'Homework 2: Outlier Detection Review'
+author: "Patricio S. La Rosa"
+date: "2/23/2020"
+output:
+  html_document:
+    keep_md: yes
+    number_sections: yes
+  word_document: default
+  pdf_document: default
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+#Deep-Dive on Outlier detection Methods
+
+The purpose of this homework is to review several outlier detection methods made avialable through R packages. After completition of this homework you should be familiarized with standard methods for univariate and multivariate outlier detection methods. Application of these techniques to you project, as it applies, will be requested and will be considered as part of your mid-term report.  
+
+For more details on how to work with RmarkDown please read the following link:
+https://www.stat.cmu.edu/~cshalizi/rmarkdown/
+
+Please install the following packages prior to execute the R Markdown:
+install.packages(c("OutlierDetection","OutliersO3","outliers"))
+
+```{r}
+library(OutlierDetection)
+library(OutliersO3)
+library(outliers)
+```
+
+
+## Data Description:
+
+We will proceed now to summarize the classical Toy Example iris:
+
+The Fisher's or Anderson's iris data set gives the measurements in centimeters of the variables sepal length and width and petal length and width, respectively, for 50 flowers from each of 3 species of iris. The species are Iris setosa, versicolor, and virginica. For more information about the data set, execute 
+
+```{r iris}
+help(iris)
+summary(iris)
+head(iris)
+
+```
+
+
+## Problem 1: Expanding knowledge based on Outlier detection techniques
+The objective of this problem is to expose the student to different outlier detection techniques made available through R packages. The goal is to ensure that the main assumptions of these techniques are learned and the students is capable of articulating how the technique works statistically and in practice by using a toy example.
+
+As discussed in our lecture, outlier detection techniques can be classified as follows:
+
+1.-Statistical Tests based Approaches
+2. Depth-based Approaches
+3. Deviation-based Approaches
+4. Distance-based Approaches
+5. Density-based Approaches
+
+Your task is to complete this Rmarkdown with a technical summary describing each of the technique entitled below and use the toy example to describe its application.
+
+
+### 1.-Statistical Tests based Approaches:
+
+#### a) Dixon test (small sample size)
+
+Technical Summary:
+Dixon test generally determines whether a single low or high value in an order dataset is an outlier.By calculating the ratio of the distance between the value and the nearest value over the entire dataset width, we can compare the ratio with a standard reference α. For different size of data and requirement, α varies and both the highest and lowest value will be tested. Dixon test is powerful to small dataset but the limit is 30 rows which means it is not suitable to deal with the large dataset as we use in our program.
+
+References:
+- Dixon, W.J. (1950). Analysis of extreme values. Ann. Math. Stat. 21, 4, 488-506.
+- Dixon, W.J. (1951). Ratios involving extreme values. Ann. Math. Stat. 22, 1, 68-78.
+- Rorabacher, D.B. (1991). Statistical Treatment for Rejection of Deviant Values: Critical Values of Dixon Q Parameter and Related Subrange Ratios at the 95 percent Confidence Level. Anal. Chem.
+83, 2, 139-146.
+
+Application:
+
+```{r}
+X=iris[1:30,1]
+dixon.test(X,type=0,opposite=TRUE)
+
+```
+#### b) Normalscore (Deviation with respect to the mean)
+
+Technical Summary:
+Z-Scores method can tell the difference between each data point and the mean divided by the standard deviation.It's the difference between a number and the mean divided by the standard deviation. Z-scores can answer the question, "How many standard deviations is a given score from the mean?" Scores above the average result in a positive standard score, and scores below the average result in a negative standard score. We usually set a cutoff z-score so that any absolute value of z-score is larger that it, the corresponding data point will be tested as an outlier.
+
+References:
+Schiffler, R.E (1998). Maximum Z scores and outliers. Am. Stat. 42, 1, 79-80.
+
+Application:
+
+```{r}
+X=iris[,1:4]
+#scores(X,type="z",prob=0.95)
+#Displaying first 10 scores
+scores(X,type="z",prob=0.95)[1:10,]
+
+```
+
+
+#### c) Median Absolute Deviation (Deviation with respect to the median)
+
+Technical Summary:
+MAD method is calculating the median of the difference between each data point and the median of the entire dataset.Similarly, we will set a cutoff of a distribution, if the score is out of the cutoff, it will be detected as an outlier.
+
+References:
+Schiffler, R.E (1998). Maximum Z scores and outliers. Am. Stat. 42, 1, 79-80.
+
+```{r}
+X=iris[,1:4]
+#scores(X,type="mad",prob=0.95)
+#Displaying first 10 scores
+scores(X,type="mad",prob=0.95)[1:10,]
+
+```
+
+
+#### d) Interquantile range score
+
+Technical Summary:
+The IQR describes the middle 50% of values when ordered from lowest to highest. To find the interquartile range (IQR), first find the median (middle value) of the lower and upper half of the data. These values are quartile1 (Q1) and quartile3 (Q3). The IQR is the difference between Q3 and Q1. The largest estimating value(upper bound) is Q1 - k（Q3-Q1) and the smallest value (lower bound) is Q1 + k（Q3-Q1), then we set a k to determine the outlier's rule. 
+
+References:
+Schiffler, R.E (1998). Maximum Z scores and outliers. Am. Stat. 42, 1, 79-80.
+
+Note: check for the value of limit to be used. Below I inserted an arbitrary value
+```{r}
+X=iris[,1:4]
+#scores(X,type="iqr",lim=1)
+#Displaying first 10 scores
+scores(X,type="iqr",lim=1)[1:10,]
+```
+
+
+### 2. Depth-based Approach:
+Technical Summary:
+This approach is aimed to detect outliers in very large data sets with a limited execution time is presented. It visualizes the tuples as N-dimensional particles able to create a potential well around them. Later, the potential created by all the particles is used to discriminate the outliers from the objects composing clusters. Besides, the capacity to be parallelized has been a key point in the design of this algorithm.
+
+Reference:
+Johnson, T., Kwok, I., and Ng, R.T. 1998. Fast computation of 2-dimensional depth contours. In Proc. Int. Conf. on Knowledge Discovery and Data Mining (KDD), New York, NY. Kno
+
+Application:
+
+```{r}
+X=iris[,1:4]
+depthout(X,cutoff=0.05)
+
+
+
+```
+
+### 3. Deviation-based Approaches
+Technical Summary:
+Deviation-based outlier detection identifies outliers by examining the main characteristics of objects in a group.
+
+References:
+A. Arning, R. Agrawal, and P. Raghavan. A linear method for deviation detection in large
+databases. In Proc. 2nd International Conference on Knowledge Discovery and Data Mining,
+1996
+Chaudhary, A., Szalay, A. S., and Moore, A. W. 2002. Very fast outlier detection in large multidimensional data sets. In Proceedings of the ACM SIGMOD Workshop in Research Issues in Data Mining and Knowledge Discovery (DMKD). ACM Press
+
+
+### 4. Distance-based Approaches
+#### a) Outlier detection using Mahalanobis Distance
+Technical Summary:
+Mahalanobis distance calculates the distance between point “P1” and point “P2” by considering standard deviation.It uses covariance between variables in order to find the distance of two points.The center point can be represented as the mean value of every variable in multivariate data.We can take probability values of 0.9 as a cutoff.
+
+References:
+Barnett, V. 1978. The study of outliers: purpose and model. Applied Statistics, 27(3), 242–250.
+
+Application:
+```{r}
+X=iris[,1:4]
+maha(X,cutoff=0.9)
+```
+
+#### b) Outlier detection using k Nearest Neighbours Distance method
+Technical Summary:
+In KNN method, knowing the k-distance of the data point, the k-distance neighborhood of the data contains all data objects whose distance to the data point is not greater than the k-distance.In other words, an outlier will be detected when it exceed the threshold k of any other data point.
+
+References:
+Hautamaki, V., Karkkainen, I., and Franti, P. 2004. Outlier detection using k-nearest neighbour graph. In Proc. IEEE Int. Conf. on Pattern Recognition (ICPR), Cambridge, UK.
+
+Application:
+
+```{r}
+X=iris[,1:4]
+nn(X,k=4)
+```
+
+#### c) Outlier detection using kth Nearest Neighbour Distance method
+Technical Summary:
+Similar to KNN,which looks at the distance metric that is the averaged distance to the K nearest neighbors, kth Nearest Neighbour Distance method aims at the distance metric that looks at how far away a point is from its Kth nearest neighbor,
+
+References:
+Hautamaki, V., Karkkainen, I., and Franti, P. 2004. Outlier detection using k-nearest neighbour graph. In Proc. IEEE Int. Conf. on Pattern Recognition (ICPR), Cambridge, UK.
+
+Application:
+
+```{r}
+X=iris[,1:4]
+nnk(X,k=4)
+```
+
+
+### 5. Density-based Approaches
+#### a) Outlier detection using Robust Kernal-based Outlier Factor(RKOF) algorithm
+Technical Summary:
+RKOF calculates the kernel density estimate by comparing the density estimate with the density of neighbor observations. In the case of given bandwidth k distance, Gaussian kernel is used for density estimation. RKOF function is suitable for the detection of outliers in clustering and other multidimensional domain problem.
+
+Reference:
+Ester, M., Kriegel, H.-P., Sander, J., and Xu, X. 1996. A density-based algorithm for discovering clusters in large spatial databases with noise. In Proc. Int. Conf. on Knowledge Discovery and Data Mining (KDD), Portland, OR.
+
+Application:
+```{r}
+X=iris[,1:4]
+dens(X,k=4,C=1)
+```
+#### b) Outlier detection using genralised dispersion
+Technical Summary:
+Disp calculates the LOO dispersion matrix for each observed value (regardless of the dispersion matrix for the current observed value) and marks the observed value as an outlier based on the self-guided cutoff of the score (the difference between the determinant of the LOO dispersion matrix and the actual dispersion matrix det). Outliers labeled "outliers" are also reported, which is a boots-up estimate of the probability of observed outliers. For binary data, it also shows a scatter plot of the data with labeled outliers.
+
+Reference:
+Jin, W., Tung, A., and Han, J. 2001. Mining top-n local outliers in large databases. In Proc. ACM SIGKDD Int. Conf. on Knowledge Discovery and Data Mining (SIGKDD), San Francisco, CA.
+
+Application:
+```{r}
+X=iris[,1:4]
+disp(X,cutoff=0.99)
+```
+
+### 6. Join assessment of outlier detection methods using techniques described under 2 to 5.
+
+Technical Summary: Given the abudance of method to define outliers a most recent strategy is to develop consensus outlier detection method. For example, rules such as majority vote can be applied when the techniques considered are essentially different. Per instance, see "Outlier detection" package function OutlierDetection which finds outlier observations for the data using different methods and labels an observation as outlier based on the intersection of all the methods considered. Using the function edit in R investigate the criterion being used and which techniques were considered. Also, proposed a modification to the function so to consider any technique to include any given number of techniques for outlier detection. Per instance, ensure that you can include the techniques covered under category 1.
+
+Application:
+```{r}
+X=iris[,1:4]
+OutlierDetection(X)
+#Unveil the criterion used in OutlierDection function to define outliers using different methods
+#edit(OutlierDetection) # uncomment and execute this line
+```
+
+## Problem 2: 
+Apply the technique discussed above to the data set that you are using as part of the your problem. Please make sure to report the following:
+a) summary of you data sets
+Consider using summary function and use graphics to display your data
+
+###(a)
+```{r}
+Data = read.csv("C:\\Users\\31915\\OneDrive\\Desktop\\test.csv")
+```
+Data Description:
+
+We will proceed now to summarize our dataset:
+
+```{r}
+summary(Data)
+head(Data)
+i = 1
+while (i < 6) {
+hist(Data[,i])
+boxplot(Data[,i])
+i = i + 1
+}
+
+```
+b) Apply all the outlier detection methods described above to your data set as they fit
+
+###（b)
+##1.Statistical Tests based Approaches:
+1.1 Dixon (Only works on the first 30 rows)
+```{r}
+X=Data[1:30,1]
+dixon.test(X,type=0,opposite=TRUE)
+
+```
+1.2 Normalscore (Deviation with respect to the mean)
+```{r}
+X=Data
+#scores(X,type="z",prob=0.95)
+#Displaying first 10 scores
+scores(X,type="z",prob=0.95)[1:10,]
+
+```
+
+
+1.3 Median Absolute Deviation (Deviation with respect to the median)
+```{r}
+X=Data
+#scores(X,type="mad",prob=0.95)
+#Displaying first 10 scores
+scores(X,type="mad",prob=0.95)[1:10,]
+
+```
+
+
+1.4 Interquantile range score
+```{r}
+X=Data
+#scores(X,type="iqr",lim=1)
+#Displaying first 10 scores
+scores(X,type="iqr",lim=1)[1:10,]
+```
+
+
+##2.Depth-based Approach:
+```{r}
+X=Data[1:1000,]
+depthout(X,cutoff=0.05)
+
+
+
+```
+##3.Distance-based Approaches
+3.1 Outlier detection using Mahalanobis Distance
+
+```{r}
+X=Data
+a = maha(X,cutoff=0.9)
+maha(X,cutoff=0.9)
+```
+3.2 Outlier detection using k Nearest Neighbours Distance method(Computation is too much, not working)
+```{r}
+X=Data
+nn(X,k=4)
+```
+
+3.3 Outlier detection using kth Nearest Neighbour Distance method(Computation is too much, not working)
+```{r}
+X=Data
+nnk(X,k=4)
+```
+
+
+## 4. Density-based Approaches
+4.1 Outlier detection using Robust Kernal-based Outlier Factor(RKOF) algorithm
+```{r}
+X=Data
+b = dens(X,k=4,C=1)
+dens(X,k=4,C=1)
+```
+4.2 Outlier detection using genralised dispersion
+```{r}
+X=Data
+disp(X,cutoff=0.99)
+```
+
+c) Report outlier based on consensus rule based on all the techniques that applied to your data sets.
+
+###(c)
+Using join assessment of outlier detection methods
+```{r}
+X=Data
+c = OutlierDetection(X)
+OutlierDetection(X)
+#Unveil the criterion used in OutlierDection function to define outliers using different methods
+#edit(OutlierDetection) # uncomment and execute this line
+```
+
+Our own method, choose 
+```{r}
+a1 = unlist(a[2])
+b1 = unlist(b[2])
+c1 = unlist(c[2])
+s=intersect(intersect(a1,b1),c1)
+cat(s)
+```
